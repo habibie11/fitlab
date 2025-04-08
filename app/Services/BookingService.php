@@ -52,47 +52,48 @@ class BookingService
 
   public function storeBookingInSession($subscribePackage, $validatedData)
   {
-      $bookingData = $this->calculateBookingData($subscribePackage, $validatedData);
-      $this->bookingRepository->saveToSession($bookingData);
+    $bookingData = $this->calculateBookingData($subscribePackage, $validatedData);
+    $this->bookingRepository->saveToSession($bookingData);
   }
 
   public function payment()
   {
-      $booking = $this->bookingRepository->getBookingDataFromSession();
-      $subscribePackage = $this->subscribePackageRepository->find($booking['subscribe_package_id']);
+    $booking = $this->bookingRepository->getBookingDataFromSession();
+    $subscribePackage = $this->subscribePackageRepository->find($booking['subscribe_package_id']);
 
-      return compact('booking', 'subscribePackage');
+    return compact('booking', 'subscribePackage');
   }
 
   public function paymentStore(array $validated)
   {
-      $bookingData = $this->bookingRepository->getBookingDataFromSession();
-      $bookingTransactionId = null;
+    $bookingData = $this->bookingRepository->getBookingDataFromSession();
+    // dd($bookingData);
+    $bookingTransactionId = null;
 
-      // Transaksi database berbasis closure
-      DB::transaction(function () use ($validated, &$bookingTransactionId, $bookingData) {
-          if (isset($validated['proof'])) {
-              $proofPath = $validated['proof']->store('proofs', 'public');
-              $validated['proof'] = $proofPath;
-          }
+    // Transaksi database berbasis closure
+    DB::transaction(function () use ($validated, &$bookingTransactionId, $bookingData) {
+      if (isset($validated['proof'])) {
+        $proofPath = $validated['proof']->store('proofs', 'public');
+        $validated['proof'] = $proofPath;
+      }
 
-          $validated['name'] = $bookingData['name'];
-          $validated['email'] = $bookingData['email'];
-          $validated['phone'] = $bookingData['phone'];
-          $validated['duration'] = $bookingData['duration'];
-          $validated['total_amount'] = $bookingData['total_amount'];
-          $validated['subscribe_package_id'] = $bookingData['subscribe_package_id'];
-          $validated['started_at'] = $bookingData['started_at'];
-          $validated['ended_at'] = $bookingData['ended_at'];
-          $validated['is_paid'] = false;
+      $validated['name'] = $bookingData['name'];
+      $validated['email'] = $bookingData['email'];
+      $validated['phone'] = $bookingData['phone'];
+      $validated['duration'] = $bookingData['duration'];
+      $validated['total_amount'] = $bookingData['total_amount'];
+      $validated['subscribe_package_id'] = $bookingData['subscribe_package_id'];
+      $validated['started_at'] = $bookingData['started_at'];
+      $validated['ended_at'] = $bookingData['ended_at'];
+      $validated['is_paid'] = false;
 
-          $validated['booking_trx_id'] = SubscribeTransaction::generateUniqueTrxId();
+      $validated['booking_trx_id'] = SubscribeTransaction::generateUniqueTrxId();
 
-          $newBooking = $this->bookingRepository->createBooking($validated);
+      $newBooking = $this->bookingRepository->createBooking($validated);
 
-          $bookingTransactionId = $newBooking->id;
-      });
+      $bookingTransactionId = $newBooking->id;
+    });
 
-      return $bookingTransactionId;
+    return $bookingTransactionId;
   }
 }

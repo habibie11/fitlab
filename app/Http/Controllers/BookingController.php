@@ -30,6 +30,7 @@ class BookingController extends Controller
 
     public function bookingStore(SubscribePackage $subscribePackage, StoreBookingRequest $request)
     {
+        // dd($subscribePackage, $request->all());
         $validated = $request->validated();
 
         try {

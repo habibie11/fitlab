@@ -11,37 +11,35 @@ class SubscribeTransaction extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'booking_trx_id',
-        'name',
-        'phone',
-        'email',
-        'proof',
-        'total_amount',
-        'duration',
-        'is_paid',
-        'started_at',
-        'ended_at',
-        'subscribe_package_id',
-    ];
+    protected $guarded = ['id'];
+    // protected $fillable = [
+    //     'booking_trx_id',
+    //     'name',
+    //     'phone',
+    //     'email',
+    //     'proof',
+    //     'total_amount',
+    //     'duration',
+    //     'is_paid',
+    //     'started_at',
+    //     'ended_at',
+    //     'subscribe_package_id',
+    // ];
 
     protected $casts = [
         'started_at' => 'date',
         'ended_at' => 'date',
     ];
-    
-    public function subscribePackage() : BelongsTo
+
+    public function subscribePackage(): BelongsTo
     {
         return $this->belongsTo(SubscribePackage::class, 'subscribe_package_id');
     }
 
     public static function generateUniqueTrxId()
     {
-        $prefix = 'FITBWA';
-        do {
-            $randomString = $prefix . mt_rand(1000, 9999);
-        } while (self::query('booking_trx_id', $randomString)->exists());
-
+        $prefix = 'FITLAB';
+        $randomString = $prefix . mt_rand(1000, 9999);
         return $randomString;
     }
 }
